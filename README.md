@@ -55,6 +55,9 @@ The queue processes one movie at a time, with up to 20 pending downloads.
 
 ## Play
 
+Open the server root in a browser for a live movie shelf, download progress, and
+Play / Copy link / Subtitles actions. It refreshes every two seconds.
+
 Paste a URL into IINA, VLC, or another network player:
 
 ```text
@@ -86,6 +89,8 @@ saved and queued library; it doesn't discover or download movies from a title al
 | `GET /downloads/<id>` | Bearer token | Progress, status, and destination |
 | `GET /resolve/<title>` | Bearer token | Top five matches and scores |
 | `GET /health` | Bearer token | Service health |
+| `GET /` | Public | Live movie shelf |
+| `GET /library` | Public | Titles, safe playback links, and progress |
 | `GET /<title>` | Public | Match and play a movie |
 | `GET /<title>/subtitles` | Public | Its English subtitle |
 
@@ -100,7 +105,7 @@ are applied to cue timestamps. ASS subtitles currently require zero delay.
 | `--host` | `127.0.0.1` |
 | `--port` / `PORT` | `8766` |
 
-Playback URLs are public; queue creation and administration require the token.
+The movie shelf, progress, and playback URLs are public; queue creation and administration require the token.
 Only movies and subtitles under the media directory are served. Sources and
 redirects must resolve to public HTTP(S) addresses; validated IPs are pinned for
 the connection while HTTPS hostname verification remains enabled.

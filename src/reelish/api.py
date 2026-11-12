@@ -235,7 +235,17 @@ def transfer(url, destination, max_size):
             ):
                 raise ValueError("Download exceeds the file size limit")
             metadata.write_text(
-                json.dumps({"source": identity, "validator": validator})
+                json.dumps(
+                    {
+                        "source": identity,
+                        "validator": validator,
+                        "totalBytes": int(valid_range[3])
+                        if valid_range
+                        else offset + expected
+                        if expected is not None
+                        else None,
+                    }
+                )
             )
             written = 0
             deadline = time.monotonic() + 14400
@@ -444,6 +454,10 @@ class Handler(BaseHTTPRequestHandler):
         return True
 
     def do_GET(self):
+        from .shelf import handle_shelf
+
+        if handle_shelf(self, MediaGateway(ROOT, db, public_address)):
+            return
         if not self.path.startswith(("/downloads", "/health", "/resolve")):
             try:
                 return MediaGateway(ROOT, db, public_address).handle(self)
@@ -481,6 +495,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json(404, {"error": "Not found"})
 
     def do_HEAD(self):
+        from .shelf import handle_shelf
+
+        if handle_shelf(self, MediaGateway(ROOT, db, public_address), head=True):
+            return
         if self.path.startswith(("/downloads", "/health", "/resolve")):
             return self.do_GET()
         try:

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex,nofollow">
+<title>Movie shelf · reelish</title>
+<style>
+:root{color-scheme:dark;--bg:#111715;--panel:#19231e;--line:#304038;--text:#f1f3e9;--muted:#a5b2a6;--mint:#c5f58b;--orange:#ffc37c;--red:#efb0a5;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--text);min-height:100vh}button,input,a{-webkit-tap-highlight-color:transparent}button,input{font:inherit}a{color:inherit}button,a,input{outline-offset:5px}:focus-visible{outline:2px solid var(--mint)}.wrap{max-width:1120px;margin:auto;padding:0 32px}header{height:100px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-size:25px;letter-spacing:-1.4px;font-weight:750;display:flex;gap:11px;align-items:center;text-decoration:none}.brand-mark{font-size:24px;transform:rotate(-9deg)}.live{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}.dot{width:7px;height:7px;background:var(--mint);border-radius:50%;box-shadow:0 0 0 4px #c5f58b10}.live.offline .dot{background:var(--orange);box-shadow:none}main{padding-top:64px;padding-bottom:72px}.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:650;color:var(--mint);margin:0 0 14px}h1{font-size:clamp(36px,6vw,56px);font-weight:550;letter-spacing:-2px;line-height:1.08;margin:0 0 18px}.intro{color:var(--muted);font-size:15px;line-height:1.7;margin:0;max-width:500px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:40px 0 22px}.counts{font-size:13px;color:var(--muted)}.counts strong{color:var(--text);font-weight:550}.search{width:265px;border:1px solid var(--line);background:transparent;color:var(--text);padding:11px 14px;border-radius:9px;font-size:13px}.search::placeholder{color:#87998b}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{border:1px solid var(--line);border-radius:14px;padding:25px;background:var(--panel);display:flex;flex-direction:column;min-width:0}.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.film{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8caa96}.badge{font-size:11px;line-height:1;padding:7px 9px;border-radius:20px;background:#c5f58b12;color:var(--mint);white-space:nowrap}.badge.downloading{color:var(--orange);background:#ffc37c12}.badge.queued,.badge.missing{color:var(--muted);background:#a5b2a612}.badge.failed{color:var(--red);background:#efb0a512}.title{font-size:21px;line-height:1.35;letter-spacing:-.45px;font-weight:550;margin:0 0 26px;overflow-wrap:anywhere}.progress-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted);margin-bottom:9px}.amount{font-variant-numeric:tabular-nums;font-size:11px;white-space:nowrap}progress{appearance:none;-webkit-appearance:none;display:block;width:100%;height:5px;border:0;border-radius:4px;overflow:hidden;background:#344238;color:var(--mint)}progress::-webkit-progress-bar{background:#344238;border-radius:4px}progress::-webkit-progress-value{background:var(--mint);border-radius:4px;transition:width .5s}progress::-moz-progress-bar{background:var(--mint);border-radius:4px}.card.downloading progress::-webkit-progress-value{background:var(--orange)}.card.failed progress::-webkit-progress-value{background:var(--red)}progress:not([value]){background:linear-gradient(90deg,#344238 25%,#8d9d72 50%,#344238 75%);background-size:200% 100%;animation:waiting 2s linear infinite}progress:not([value])::-webkit-progress-bar{background:transparent}.actions{display:flex;align-items:center;gap:10px;margin-top:25px;padding-top:20px;border-top:1px solid #30403880}.play{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:12px;font-weight:650;padding:9px 13px;background:var(--mint);color:#1a2b16;border-radius:7px;white-space:nowrap}.secondary{background:none;border:0;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:none;padding:9px 5px}.secondary:hover{color:var(--text)}.subtitle{margin-left:auto}.empty{grid-column:1/-1;text-align:center;border:1px dashed var(--line);border-radius:14px;padding:64px 20px;color:var(--muted);line-height:1.7}.empty strong{display:block;color:var(--text);font-weight:500;margin-bottom:8px;font-size:19px}footer{border-top:1px solid var(--line);padding:24px 0 36px;color:#7d9383;font-size:11px;display:flex;justify-content:space-between;gap:20px;line-height:1.6}footer a{text-decoration:none}footer a:hover{color:var(--mint)}.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#e3edcf;color:#1a2b16;padding:12px 18px;border-radius:9px;font-size:13px;box-shadow:0 8px 30px #0004;z-index:2}.toast[hidden]{display:none}@keyframes waiting{to{background-position:-200% 0}}@media(max-width:700px){.wrap{padding:0 20px}header{height:80px}main{padding-top:42px}.grid{grid-template-columns:1fr}.toolbar{align-items:stretch;flex-direction:column;gap:15px;margin-top:32px}.search{width:100%}.card{padding:22px}footer{flex-direction:column;gap:8px}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="/" aria-label="reelish home"><span class="brand-mark" aria-hidden="true">🍿</span>reelish</a><div id="live" class="live" role="status"><span class="dot" aria-hidden="true"></span><span id="connection">Connecting…</span></div></header>
+<main>
+<p class="eyebrow">A little cinema, wherever you are</p>
+<h1>Movie shelf.</h1>
+<p class="intro">Pick something good. You can start watching while the download catches up.</p>
+<div class="toolbar"><div id="counts" class="counts" aria-live="polite">Checking the shelf…</div><label><span class="sr-only">Find a movie</span><input id="search" class="search" type="search" placeholder="Find a movie…" autocomplete="off"></label></div>
+<section id="shelf" class="grid" aria-label="Movies"><div class="empty"><strong>One moment…</strong>Getting your movies ready.</div></section>
+</main>
+<footer><span>Know the name? Almost is enough. Try /movie-title in your player.</span><a href="https://github.com/r0hin/reelish" target="_blank" rel="noopener noreferrer">A little thing called reelish ↗</a></footer>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+(() => {
+  'use strict';
+  const shelf = document.getElementById('shelf');
+  const search = document.getElementById('search');
+  const counts = document.getElementById('counts');
+  const live = document.getElementById('live');
+  const connection = document.getElementById('connection');
+  const toast = document.getElementById('toast');
+  const cards = new Map();
+  let items = [], timer, busy = false, toastTimer, loaded = false;
+  const labels = { complete: 'Ready to watch', downloading: 'Downloading', queued: 'In the queue', failed: 'Download stopped', missing: 'File missing' };
+  function node(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text) element.textContent = text;
+    return element;
+  }
+  function size(bytes) {
+    if (bytes >= 1e9) return (bytes / 1e9).toFixed(2) + ' GB';
+    if (bytes >= 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
+    if (bytes >= 1e3) return Math.round(bytes / 1e3) + ' KB';
+    return bytes + ' B';
+  }
+  function notify(message) {
+    toast.textContent = message;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.hidden = true; }, 2500);
+  }
+  function createCard(item) {
+    const article = node('article', 'card');
+    const top = node('div', 'topline');
+    const badge = node('span', 'badge');
+    top.append(node('span', 'film', 'Feature presentation'), badge);
+    const title = node('h2', 'title');
+    const heading = node('div', 'progress-heading');
+    const phase = node('span');
+    const amount = node('span', 'amount');
+    heading.append(phase, amount);
+    const progress = node('progress');
+    progress.max = 100;
+    const actions = node('div', 'actions');
+    const play = node('a', 'play', '▶  Play');
+    const copy = node('button', 'secondary', 'Copy link');
+    copy.type = 'button';
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(new URL(play.getAttribute('href'), location.href).href); notify('Playback link copied'); }
+      catch (_) { notify('Couldn’t copy the link. Use the Play link instead.'); }
+    });
+    const subtitle = node('a', 'secondary subtitle', 'Subtitles ↗');
+    subtitle.target = '_blank'; subtitle.rel = 'noopener';
+    actions.append(play, copy, subtitle);
+    article.append(top, title, heading, progress, actions);
+    return { article, badge, title, phase, amount, progress, play, copy, subtitle };
+  }
+  function render() {
+    const query = search.value.trim().toLocaleLowerCase();
+    const visible = items.filter(item => item.title.toLocaleLowerCase().includes(query));
+    const present = new Set(items.map(item => item.id));
+    for (const [id, card] of cards) if (!present.has(id)) { card.article.remove(); cards.delete(id); }
+    const placeholder = shelf.querySelector('.empty');
+    if (placeholder) placeholder.remove();
+    for (const item of items) {
+      let card = cards.get(item.id);
+      if (!card) { card = createCard(item); cards.set(item.id, card); shelf.append(card.article); }
+      card.article.hidden = !visible.includes(item);
+      card.article.className = 'card ' + item.status;
+      card.title.textContent = item.title;
+      card.badge.textContent = labels[item.status] || 'Queued';
+      card.badge.className = 'badge ' + item.status;
+      card.phase.textContent = item.status === 'complete' ? 'Saved and ready' : item.status === 'queued' ? 'Waiting for its turn' : item.status === 'failed' ? 'Retry the save to continue' : item.status === 'missing' ? 'Try the original stream' : item.phase === 'subtitles' ? 'Saving English subtitles' : item.progress == null ? 'Saving video' : item.progress.toFixed(1).replace('.0', '') + '% downloaded';
+      card.amount.textContent = size(item.downloadedBytes) + (item.totalBytes && item.status !== 'complete' ? ' / ' + size(item.totalBytes) : '');
+      card.progress.setAttribute('aria-label', item.title + ' download progress');
+      if (item.progress == null && item.status === 'downloading') card.progress.removeAttribute('value');
+      else card.progress.value = item.progress == null ? 0 : item.progress;
+      card.play.setAttribute('href', item.playUrl);
+      card.play.setAttribute('aria-label', 'Play ' + item.title);
+      card.copy.setAttribute('aria-label', 'Copy playback link for ' + item.title);
+      card.subtitle.hidden = !item.subtitleUrl;
+      if (item.subtitleUrl) card.subtitle.setAttribute('href', item.subtitleUrl);
+    }
+    if (!visible.length) {
+      const empty = node('div', 'empty');
+      empty.append(node('strong', '', items.length ? 'No matching movies.' : 'The shelf is waiting.'));
+      empty.append(node('span', '', items.length ? 'Try another title.' : 'Add a download and it will appear here.'));
+      shelf.append(empty);
+    }
+    const ready = items.filter(item => item.status === 'complete').length;
+    const active = items.filter(item => item.status === 'downloading' || item.status === 'queued').length;
+    counts.textContent = items.length + (items.length === 1 ? ' movie' : ' movies') + ' · ' + ready + ' ready' + (active ? ' · ' + active + ' in progress' : '');
+  }
+  async function refresh() {
+    if (busy) return;
+    clearTimeout(timer);
+    busy = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await fetch('/library', { cache: 'no-store', signal: controller.signal });
+      if (!response.ok) throw new Error('Unavailable');
+      const data = await response.json();
+      items = data.items;
+      loaded = true;
+      render();
+      connection.textContent = 'Live · refreshes every 2s';
+      live.classList.remove('offline');
+    } catch (_) {
+      connection.textContent = 'Reconnecting…';
+      live.classList.add('offline');
+      if (!loaded) {
+        shelf.replaceChildren();
+        const empty = node('div', 'empty');
+        empty.append(node('strong', '', 'The shelf is taking a moment.'), node('span', '', 'Trying again automatically.'));
+        shelf.append(empty);
+        counts.textContent = 'Waiting for a connection';
+      }
+    } finally {
+      clearTimeout(timeout);
+      busy = false;
+      timer = setTimeout(refresh, document.hidden ? 15000 : 2000);
+    }
+  }
+  search.addEventListener('input', render);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  refresh();
+})();
+</script>
+</body>
+</html>
