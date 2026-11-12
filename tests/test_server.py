@@ -111,7 +111,7 @@ class RemoteTests(RemoteTestCase):
         api.initialize()
         self.assertEqual(api.status(job_id)["status"], "queued")
 
-        def fake_transfer(url, target, maximum):
+        def fake_transfer(url, target, maximum, cancelled=lambda: False):
             target.write_bytes(
                 b"1\n00:00:01,000 --> 00:00:02,000\nHello\n"
                 if "en.srt" in url

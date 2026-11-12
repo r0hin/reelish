@@ -184,13 +184,18 @@ class MediaGateway:
         import json
 
         with self.db() as con:
-            rows = con.execute("SELECT * FROM jobs ORDER BY created DESC").fetchall()
+            rows = con.execute(
+                "SELECT * FROM jobs WHERE status != 'trashed' ORDER BY created DESC"
+            ).fetchall()
         library = [dict(row, title=json.loads(row["payload"])["title"]) for row in rows]
         known = {row["folder"] for row in library}
         for file in self.root.rglob("*"):
             if not file.is_file() or file.suffix.lower() not in VIDEO_EXTENSIONS:
                 continue
-            if file.relative_to(self.root).parts[0] in known:
+            if (
+                file.relative_to(self.root).parts[0] in known
+                or file.relative_to(self.root).parts[0] == ".reelish-trash"
+            ):
                 continue
             # Never publish a symlink pointing outside Movies.
             if self.root.resolve() not in file.resolve().parents:
@@ -211,7 +216,9 @@ class MediaGateway:
                     "id": hashlib.sha256(relative.encode()).hexdigest()[:32],
                     "title": title,
                     "status": "complete",
-                    "created": file.stat().st_mtime,
+                    "created": getattr(
+                        file.stat(), "st_birthtime", file.stat().st_ctime
+                    ),
                     "file": file,
                 }
             )

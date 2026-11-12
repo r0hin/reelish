@@ -35,7 +35,14 @@ STATE = Path(
     )
 )
 TOKEN = os.environ.get("REELISH_TOKEN", os.environ.get("CINEMA_DOWNLOAD_TOKEN", ""))
+MANAGE_TOKEN = os.environ.get("REELISH_MANAGE_TOKEN", "")
 WAKE = threading.Event()
+JOB_GUARD = threading.RLock()
+ACTIVE_JOBS = {}
+
+
+class DownloadCancelled(Exception):
+    pass
 
 
 @contextmanager
@@ -112,7 +119,8 @@ def validate(payload):
 def update(job_id, status, message):
     with db() as con:
         con.execute(
-            "UPDATE jobs SET status=?, message=? WHERE id=?", (status, message, job_id)
+            "UPDATE jobs SET status=?, message=? WHERE id=? AND status != 'trashed'",
+            (status, message, job_id),
         )
 
 
@@ -175,11 +183,13 @@ def status(job_id):
     }
 
 
-def transfer(url, destination, max_size):
+def transfer(url, destination, max_size, cancelled=lambda: False):
     """Download with bounded writes and validator-aware restart/resume."""
     metadata = destination.with_suffix(".resume.json")
     identity = hashlib.sha256(url.encode()).hexdigest()
     for attempt in range(2):
+        if cancelled():
+            raise DownloadCancelled()
         saved = {}
         try:
             saved = json.loads(metadata.read_text())
@@ -251,7 +261,11 @@ def transfer(url, destination, max_size):
             deadline = time.monotonic() + 14400
             with destination.open("ab" if offset else "wb") as file:
                 while True:
+                    if cancelled():
+                        raise DownloadCancelled()
                     chunk = response.read(64 * 1024)
+                    if cancelled():
+                        raise DownloadCancelled()
                     if not chunk:
                         break
                     if offset + written + len(chunk) > max_size:
@@ -270,6 +284,8 @@ def transfer(url, destination, max_size):
             metadata.unlink(missing_ok=True)
             return text
         except (OSError, http.client.HTTPException):
+            if cancelled():
+                raise DownloadCancelled() from None
             raise ValueError(
                 "Source download was interrupted; retry the save"
             ) from None
@@ -359,15 +375,30 @@ def run_job(row):
     payload = json.loads(row["payload"])
     folder = ROOT / row["folder"]
     basename = row["folder"].rsplit(" [", 1)[0]
+    cancel = threading.Event()
     try:
-        folder.mkdir(exist_ok=True)
-        update(job_id, "downloading", "Saving English subtitles")
+        with JOB_GUARD:
+            with db() as con:
+                current = con.execute(
+                    "SELECT status FROM jobs WHERE id=?", (job_id,)
+                ).fetchone()
+            if not current or current["status"] == "trashed":
+                return
+            ACTIVE_JOBS[job_id] = cancel
+            folder.mkdir(exist_ok=True)
+            update(job_id, "downloading", "Saving English subtitles")
         part = folder / "subtitle.part"
-        transfer(payload["subtitleUrl"], part, 10 * 1024 * 1024)
+        transfer(payload["subtitleUrl"], part, 10 * 1024 * 1024, cancel.is_set)
         extension, data = subtitle_file(part.read_bytes(), payload["subtitleDelay"])
-        (folder / (basename + ".en." + extension)).write_bytes(data)
-        part.unlink()
-        update(job_id, "downloading", "Saving video")
+        with JOB_GUARD:
+            if cancel.is_set():
+                raise DownloadCancelled()
+            (folder / (basename + ".en." + extension)).write_bytes(data)
+            part.unlink()
+        with JOB_GUARD:
+            if cancel.is_set():
+                raise DownloadCancelled()
+            update(job_id, "downloading", "Saving video")
         part = folder / "video.part"
         free = (
             shutil.disk_usage(ROOT).free
@@ -376,7 +407,9 @@ def run_job(row):
         )
         if free < 100 * 1024 * 1024:
             raise ValueError("Not enough free disk space on the server")
-        headers = transfer(payload["videoUrl"], part, free)
+        headers = transfer(payload["videoUrl"], part, free, cancel.is_set)
+        if cancel.is_set():
+            raise DownloadCancelled()
         with part.open("rb") as video:
             magic = video.read(32)
         if magic.lstrip().startswith((b"#EXTM3U", b"<", b"{")):
@@ -400,18 +433,34 @@ def run_job(row):
             ".m2ts",
         ):
             ext = ".mp4" if "video/mp4" in headers.lower() else ".mkv"
-        part.replace(folder / (basename + ext))
-        update(
-            job_id, "complete", "Saved video and English subtitles in " + row["folder"]
-        )
+        with JOB_GUARD:
+            if cancel.is_set():
+                raise DownloadCancelled()
+            part.replace(folder / (basename + ext))
+            update(
+                job_id,
+                "complete",
+                "Saved video and English subtitles in " + row["folder"],
+            )
+    except DownloadCancelled:
+        with JOB_GUARD:
+            if not cancel.is_set():
+                update(job_id, "queued", "Resuming download")
+                WAKE.set()
     except Exception as error:
-        update(
-            job_id,
-            "failed",
-            str(error)
-            if isinstance(error, ValueError)
-            else "Download interrupted; retry the save",
-        )
+        with JOB_GUARD:
+            if not cancel.is_set():
+                update(
+                    job_id,
+                    "failed",
+                    str(error)
+                    if isinstance(error, ValueError)
+                    else "Download interrupted; retry the save",
+                )
+    finally:
+        with JOB_GUARD:
+            if ACTIVE_JOBS.get(job_id) is cancel:
+                ACTIVE_JOBS.pop(job_id, None)
 
 
 def worker():
@@ -506,7 +555,61 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    def authorized_manage(self):
+        expected = MANAGE_TOKEN or TOKEN
+        if not expected or not hmac.compare_digest(
+            self.headers.get("Authorization", "").encode(),
+            ("Bearer " + expected).encode(),
+        ):
+            self.send_json(401, {"error": "Enter the owner key to manage movies"})
+            return False
+        return True
+
+    def do_DELETE(self):
+        if not self.authorized_manage():
+            return
+        match = re.fullmatch(r"/library/([a-f0-9]{32})", self.path)
+        if not match:
+            return self.send_json(404, {"error": "Movie not found"})
+        from .trash import remove
+
+        try:
+            with JOB_GUARD:
+                cancel = ACTIVE_JOBS.get(match[1])
+                if cancel:
+                    cancel.set()
+                result = remove(MediaGateway(ROOT, db, public_address), match[1])
+            self.send_json(200, result)
+        except FileNotFoundError:
+            self.send_json(404, {"error": "Movie not found"})
+        except (ValueError, OSError):
+            if cancel:
+                cancel.clear()
+            self.send_json(409, {"error": "Could not move this movie to trash"})
+
     def do_POST(self):
+        restore_match = re.fullmatch(r"/trash/([a-f0-9]{32})/restore", self.path)
+        if restore_match:
+            if not self.authorized_manage():
+                return
+            from .trash import restore
+
+            try:
+                with JOB_GUARD:
+                    result = restore(
+                        MediaGateway(ROOT, db, public_address), restore_match[1]
+                    )
+                WAKE.set()
+                return self.send_json(200, result)
+            except FileNotFoundError:
+                return self.send_json(404, {"error": "Trash item not found"})
+            except (ValueError, OSError):
+                return self.send_json(
+                    409,
+                    {
+                        "error": "Could not restore this movie; an existing file may have the same name"
+                    },
+                )
         if not self.authorized():
             return
         if self.path != "/downloads":

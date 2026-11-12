@@ -151,3 +151,30 @@ class ShelfTests(RemoteTestCase):
         server = self.server()
         with patch("reelish.shelf._safe_files", return_value=[]):
             self.assertEqual(self.catalog(server)[0]["downloadedBytes"], 0)
+
+    def test_favicon_and_simplified_controls(self):
+        server = self.server()
+        code, headers, body = self.request(server, "/favicon.svg")
+        self.assertEqual(code, 200)
+        self.assertIn("image/svg+xml", headers["Content-Type"])
+        self.assertIn("🍿", body.decode())
+        self.assertEqual(self.request(server, "/favicon.svg", method="HEAD")[2], b"")
+        html = self.request(server, "/")[2]
+        for removed in (
+            b"<footer",
+            b'class="eyebrow"',
+            b"Feature presentation",
+            b"Live ",
+            b"Copy link",
+        ):
+            self.assertNotIn(removed, html)
+        for control in (
+            b"Open in Outplayer",
+            b"outplayer://",
+            b"Delete",
+            b"Owner key",
+            b"Undo",
+            b"addedAt",
+            b"resolution",
+        ):
+            self.assertIn(control, html)

@@ -1,10 +1,12 @@
 """The public movie shelf: presentation data, never source links or credentials."""
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from .media import VIDEO_EXTENSIONS
+from .video_info import resolution
 
 
 def _safe_files(root, folder):
@@ -82,6 +84,10 @@ def catalog(gateway):
                 "id": row["id"],
                 "title": row["title"],
                 "status": state,
+                "addedAt": datetime.fromtimestamp(row["created"], timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+                "resolution": resolution(row, files),
                 "phase": phase,
                 "downloadedBytes": downloaded or 0,
                 "totalBytes": total,
@@ -97,6 +103,16 @@ def catalog(gateway):
 
 def handle_shelf(handler, gateway, head=False):
     path = urlsplit(handler.path).path
+    if path == "/favicon.svg":
+        data = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y=".9em" font-size="56">🍿</text></svg>'.encode()
+        handler.send_response(200)
+        handler.send_header("Content-Type", "image/svg+xml; charset=utf-8")
+        handler.send_header("Content-Length", str(len(data)))
+        handler.send_header("Cache-Control", "public, max-age=86400")
+        handler.end_headers()
+        if not head:
+            handler.wfile.write(data)
+        return True
     if path == "/library":
         handler.send_json(200, catalog(gateway))
         return True
@@ -110,7 +126,7 @@ def handle_shelf(handler, gateway, head=False):
     handler.send_header("X-Content-Type-Options", "nosniff")
     handler.send_header(
         "Content-Security-Policy",
-        "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'",
+        "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'",
     )
     handler.end_headers()
     if not head:

@@ -56,7 +56,8 @@ The queue processes one movie at a time, with up to 20 pending downloads.
 ## Play
 
 Open the server root in a browser for a live movie shelf, download progress, and
-Play / Copy link / Subtitles actions. It refreshes every two seconds.
+Play / Link / Subtitles / Delete actions. The Link menu can copy the URL or open
+it in Outplayer; each card shows its added date and resolution. It refreshes every two seconds.
 
 Paste a URL into IINA, VLC, or another network player:
 
@@ -89,6 +90,8 @@ saved and queued library; it doesn't discover or download movies from a title al
 | `GET /downloads/<id>` | Bearer token | Progress, status, and destination |
 | `GET /resolve/<title>` | Bearer token | Top five matches and scores |
 | `GET /health` | Bearer token | Service health |
+| `DELETE /library/<id>` | Owner key | Move a movie and its subtitles to trash |
+| `POST /trash/<id>/restore` | Owner key | Restore a trashed movie |
 | `GET /` | Public | Live movie shelf |
 | `GET /library` | Public | Titles, safe playback links, and progress |
 | `GET /<title>` | Public | Match and play a movie |
@@ -100,6 +103,7 @@ are applied to cue timestamps. ASS subtitles currently require zero delay.
 | Setting | Default |
 | :--- | :--- |
 | `REELISH_TOKEN` | Required; at least 32 characters |
+| `REELISH_MANAGE_TOKEN` | Optional separate owner key; defaults to the API token |
 | `REELISH_MOVIES` / `--movies` | `~/Movies` |
 | `REELISH_STATE` / `--state` | `~/.local/state/reelish` |
 | `--host` | `127.0.0.1` |
@@ -109,6 +113,17 @@ The movie shelf, progress, and playback URLs are public; queue creation and admi
 Only movies and subtitles under the media directory are served. Sources and
 redirects must resolve to public HTTP(S) addresses; validated IPs are pinned for
 the connection while HTTPS hostname verification remains enabled.
+
+Delete moves files into a private `.reelish-trash` folder under Movies. The page
+asks for the owner key and remembers it for the current tab. Undo restores the
+movie; active downloads are cancelled and can be resumed when restored. A
+restoration never overwrites an existing file. Trash is excluded from listing
+and playback. The owner key cannot queue downloads when configured separately.
+
+Resolution comes from source filenames when present, or a background `ffprobe`
+inspection of the local video. Install FFmpeg to enable the latter (for example,
+`sudo apt install ffmpeg` on Debian/Ubuntu or `brew install ffmpeg` on macOS).
+Unidentified resolutions show as pending until enough media data is available.
 
 Direct media URLs are supported. HLS playlists, DRM, and expired source links
 aren't handled. Unfinished playback depends on the original source remaining
