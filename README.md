@@ -57,7 +57,8 @@ The queue processes one movie at a time, with up to 20 pending downloads.
 
 Open the server root in a browser for a live movie shelf, download progress, and
 Play / Link / Subtitles / Delete actions. The Link menu can copy the URL or open
-it in Outplayer; each card shows its added date and resolution. It refreshes every two seconds.
+it in Outplayer; each card shows its added date and resolution. The header shows
+free disk space on the media filesystem. It refreshes every two seconds.
 
 Paste a URL into IINA, VLC, or another network player:
 

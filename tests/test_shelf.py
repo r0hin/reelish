@@ -178,3 +178,26 @@ class ShelfTests(RemoteTestCase):
             b"resolution",
         ):
             self.assertIn(control, html)
+
+    def test_disk_space_uses_the_media_filesystem(self):
+        import shutil
+
+        usage = shutil._ntuple_diskusage(
+            total=1000000000, used=250000000, free=750000000
+        )
+        server = self.server()
+        with patch("reelish.shelf.shutil.disk_usage", return_value=usage) as read:
+            body = json.loads(self.request(server, "/library")[2])
+        self.assertEqual(
+            body["disk"], {"freeBytes": 750000000, "totalBytes": 1000000000}
+        )
+        read.assert_called_once_with(api.ROOT.resolve())
+
+    def test_disk_space_failure_preserves_the_library(self):
+        server = self.server()
+        with patch(
+            "reelish.shelf.shutil.disk_usage", side_effect=OSError("unavailable")
+        ):
+            body = json.loads(self.request(server, "/library")[2])
+        self.assertIsNone(body["disk"])
+        self.assertEqual(body["items"], [])

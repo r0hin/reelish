@@ -1,6 +1,7 @@
 """The public movie shelf: presentation data, never source links or credentials."""
 
 import json
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -98,7 +99,12 @@ def catalog(gateway):
                 else None,
             }
         )
-    return {"items": items}
+    try:
+        usage = shutil.disk_usage(root)
+        disk = {"freeBytes": usage.free, "totalBytes": usage.total}
+    except OSError:
+        disk = None
+    return {"items": items, "disk": disk}
 
 
 def handle_shelf(handler, gateway, head=False):
