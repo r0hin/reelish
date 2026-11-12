@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reelish"
+version = "0.1.0"
+description = "Save a movie. Play it by almost-name."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Rohin", email = "git@r0h.in"}]
+dependencies = ["RapidFuzz>=3.9.7,<4"]
+
+[project.scripts]
+reelish = "reelish.cli:main"
+
+[project.urls]
+Repository = "https://github.com/r0hin/reelish"
+Issues = "https://github.com/r0hin/reelish/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

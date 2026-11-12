@@ -1,0 +1,21 @@
+[Unit]
+Description=Reelish movie queue and streamer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=reelish
+Group=reelish
+EnvironmentFile=/etc/reelish.env
+ExecStart=/opt/reelish/venv/bin/reelish serve --movies /srv/reelish/Movies --state /var/lib/reelish
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/reelish/Movies /var/lib/reelish
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
